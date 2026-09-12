@@ -7,7 +7,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import Image from 'next/image'
 import {
-  Download,
   ExternalLink,
   Images,
   LayoutDashboard,
@@ -159,15 +158,6 @@ export function AdminShell({
       </nav>
 
       <div className="space-y-1 border-t border-white/10 py-4">
-        <a
-          href="/api/telecharger-site"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-white/70 transition-colors hover:bg-white/5 hover:text-white"
-        >
-          <Download className="size-4" aria-hidden="true" />
-          Télécharger le site (.zip)
-        </a>
         <a
           href="#/"
           className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-white/70 transition-colors hover:bg-white/5 hover:text-white"

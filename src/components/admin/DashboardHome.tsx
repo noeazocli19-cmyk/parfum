@@ -5,7 +5,6 @@
 import { motion } from 'framer-motion'
 import {
   Clock,
-  Download,
   ExternalLink,
   Mail,
   Package,
@@ -120,12 +119,6 @@ export function DashboardHome({ navigate }: { navigate: NavigateFn }) {
                 Voir la boutique
               </a>
             </Button>
-            <Button variant="outline" asChild>
-              <a href="/api/telecharger-site" target="_blank" rel="noopener noreferrer">
-                <Download className="size-4" aria-hidden="true" />
-                Télécharger le site
-              </a>
-            </Button>
           </>
         }
       />
@@ -238,27 +231,6 @@ export function DashboardHome({ navigate }: { navigate: NavigateFn }) {
             ))}
           </div>
         )}
-      </AdminCard>
-
-      {/* Livraison du site */}
-      <AdminCard className="p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h2 className="font-display text-lg font-semibold text-forest">
-              Dossier complet du site
-            </h2>
-            <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-              Archive .zip du site vitrine : code source, images, base de
-              données prête pour Neon et guide de démarrage inclus.
-            </p>
-          </div>
-          <Button asChild>
-            <a href="/api/telecharger-site" target="_blank" rel="noopener noreferrer">
-              <Download className="size-4" aria-hidden="true" />
-              Télécharger (.zip)
-            </a>
-          </Button>
-        </div>
       </AdminCard>
 
     </motion.div>
