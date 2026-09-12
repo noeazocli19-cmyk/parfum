@@ -6,10 +6,11 @@ import { useState } from 'react'
 import { useMounted } from '@/hooks/use-mounted'
 import Image from 'next/image'
 import { useMutation } from '@tanstack/react-query'
-import { Loader2, PhoneCall, ShoppingBag } from 'lucide-react'
+import { Loader2, MessageCircle, PhoneCall, ShoppingBag } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api-client'
 import { formatPrice, telHref } from '@/lib/format'
+import { PAYMENT_INFO, buildWhatsAppOrderMessage, getWhatsAppUrl } from '@/lib/shop-config'
 import { cartHasUndeterminedPrice, cartSubtotal, useCart } from '@/store/cart'
 import { useSettings } from '../use-settings'
 import { Button } from '@/components/ui/button'
@@ -61,6 +62,21 @@ export function CheckoutView({
       )
     },
   })
+
+  const whatsappUrl = getWhatsAppUrl(
+    buildWhatsAppOrderMessage({
+      items: items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        unitPrice: item.price,
+      })),
+      customerName: form.customerName.trim(),
+      phone: form.phone.trim(),
+      address: form.address.trim(),
+      comment: form.comment.trim(),
+      total: subtotal,
+    })
+  )
 
   if (!mounted) {
     return (
@@ -194,20 +210,35 @@ export function CheckoutView({
             </div>
           </div>
 
-          <Button
-            type="submit"
-            disabled={mutation.isPending}
-            className="mt-7 h-11 w-full bg-forest-deep hover:bg-pine-deep sm:w-auto sm:px-10"
-          >
-            {mutation.isPending ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Envoi en cours…
-              </>
-            ) : (
-              'Valider ma commande'
-            )}
-          </Button>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              className="h-11 bg-forest-deep hover:bg-pine-deep sm:px-10"
+            >
+              {mutation.isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  Envoi en cours…
+                </>
+              ) : (
+                'Valider ma commande'
+              )}
+            </Button>
+
+            {whatsappUrl ? (
+              <Button asChild variant="outline" className="h-11 border-[#25D366] bg-[#25D366]/5 text-[#1d7a3f] hover:bg-[#25D366]/10">
+                <a href={whatsappUrl} target="_blank" rel="noreferrer">
+                  <MessageCircle className="size-4" aria-hidden="true" />
+                  Passer via WhatsApp
+                </a>
+              </Button>
+            ) : null}
+          </div>
+
+          <p className="mt-4 rounded-lg border border-gold/30 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-gold-deep">
+            {PAYMENT_INFO}
+          </p>
         </form>
 
         <aside

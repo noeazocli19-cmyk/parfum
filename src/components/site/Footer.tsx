@@ -16,6 +16,14 @@ const FOOTER_LINKS = [
   { label: 'Contact', href: '#/contact' },
 ]
 
+const LEGAL_LINKS = [
+  { label: 'Mention légale', href: '#/mention-legale' },
+  { label: 'Politique d’utilisation', href: '#/politique-utilisation' },
+  { label: 'Politique générale de vente', href: '#/politique-generale-vente' },
+  { label: 'Livraison et retour', href: '#/livraison-retour' },
+  { label: 'Politique de remboursement', href: '#/politique-remboursement' },
+]
+
 export function Footer() {
   const { settings } = useSettings()
   const year = new Date().getFullYear()
@@ -75,6 +83,21 @@ export function Footer() {
           <p className="max-w-xs text-xs leading-relaxed text-white/55">
             Nos équipes vous conseillent et prennent votre commande par téléphone.
           </p>
+        </div>
+
+        <div className="flex flex-col gap-2.5">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.28em] text-gold">
+            Informations légales
+          </h2>
+          {LEGAL_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="w-fit text-sm text-white/75 transition-colors hover:text-white"
+            >
+              {link.label}
+            </a>
+          ))}
         </div>
       </div>
 
