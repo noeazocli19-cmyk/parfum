@@ -1,0 +1,111 @@
+// Schéma de base de données — E.T.P.S BELLE ODEUR
+// E-commerce parfumerie (SQLite / Prisma)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Produits ────────────────────────────────────────────────────────────────
+
+model Product {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String   @default("")
+  // Informations complémentaires (notes olfactives, contenance…)
+  notes       String?
+  // HOMME | FEMME | MIXTE (validé côté serveur)
+  category    String
+  // null = "Prix sur demande" (aucun prix inventé)
+  price       Float?
+  stock       Int?
+  isAvailable Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  // Marque les données d'exemple temporaires (à remplacer par la vraie boutique)
+  isSample    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  images      ProductImage[]
+  orderItems  OrderItem[]
+
+  @@index([category])
+  @@index([isFeatured])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String  @default("")
+  isPrimary Boolean @default(false)
+  sortOrder Int     @default(0)
+
+  @@index([productId])
+}
+
+// ─── Commandes ───────────────────────────────────────────────────────────────
+
+model Order {
+  id           String   @id @default(cuid())
+  reference    String   @unique
+  customerName String
+  phone        String
+  address      String
+  comment      String?
+  total        Float    @default(0)
+  // true si au moins un produit est "prix sur demande"
+  hasUndeterminedPrice Boolean @default(false)
+  // NOUVELLE | EN_PREPARATION | CONFIRMEE | LIVREE | ANNULEE
+  status       String   @default("NOUVELLE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  items        OrderItem[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String
+  unitPrice   Float    @default(0)
+  quantity    Int
+
+  @@index([orderId])
+}
+
+// ─── Messages de contact ─────────────────────────────────────────────────────
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ─── Administration ──────────────────────────────────────────────────────────
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  lastLoginAt  DateTime?
+}
+
+model Setting {
+  key   String @id
+  value String
+}
