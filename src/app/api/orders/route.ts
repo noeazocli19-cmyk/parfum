@@ -5,6 +5,8 @@ import { db } from '@/lib/db'
 import { clientIp, rateLimit } from '@/lib/auth'
 import { orderInclude, jsonError, readJson } from '@/lib/api-utils'
 import { orderInputSchema, formatZodError } from '@/lib/validations'
+import { buildAdminOrderNotification } from '@/lib/shop-config'
+import { sendWhatsAppNotification } from '@/lib/whatsapp-notify'
 
 async function generateReference(): Promise<string> {
   const year = new Date().getFullYear()
@@ -114,6 +116,38 @@ export async function POST(req: NextRequest) {
 
       return created
     })
+
+    // Notification WhatsApp automatique et instantanée vers l'admin, en parallèle
+    // de l'enregistrement (déjà fait ci-dessus). Un échec ici n'empêche jamais la
+    // commande d'être créée : elle reste dans tous les cas visible dans le dashboard.
+    const message = buildAdminOrderNotification({
+      reference: order.reference,
+      items: order.items.map((item) => ({
+        name: item.productName,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+      })),
+      customerName: order.customerName,
+      phone: order.phone,
+      address: order.address,
+      comment: order.comment,
+      total: order.total,
+      hasUndeterminedPrice: order.hasUndeterminedPrice,
+    })
+
+    const result = await sendWhatsAppNotification(message)
+    await db.order
+      .update({
+        where: { id: order.id },
+        data: {
+          whatsappNotifiedAt: result.ok ? new Date() : null,
+          whatsappError: result.ok ? null : (result.error ?? 'Erreur inconnue'),
+        },
+      })
+      .catch(() => {
+        // Le suivi de statut WhatsApp est un bonus pour le dashboard : on ignore
+        // une éventuelle erreur ici, la commande elle-même est déjà sauvegardée.
+      })
 
     return NextResponse.json(
       { reference: order.reference },

@@ -69,6 +69,9 @@ export interface Order {
   hasUndeterminedPrice: boolean
   status: OrderStatus
   createdAt: string
+  // Suivi de la notification WhatsApp automatique envoyée à l'admin
+  whatsappNotifiedAt: string | null
+  whatsappError: string | null
   items: OrderItem[]
 }
 

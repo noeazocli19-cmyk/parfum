@@ -63,6 +63,9 @@ model Order {
   hasUndeterminedPrice Boolean @default(false)
   // NOUVELLE | EN_PREPARATION | CONFIRMEE | LIVREE | ANNULEE
   status       String   @default("NOUVELLE")
+  // Traçabilité de la notification WhatsApp automatique envoyée à l'admin
+  whatsappNotifiedAt DateTime?
+  whatsappError      String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   items        OrderItem[]

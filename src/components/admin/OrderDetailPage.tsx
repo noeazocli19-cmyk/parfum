@@ -4,10 +4,10 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Loader2, Phone, Trash2 } from 'lucide-react'
+import { Loader2, MessageCircle, Phone, Trash2, TriangleAlert } from 'lucide-react'
 import { adminApi } from '@/lib/api-client'
 import { formatDateTime, formatPrice, telHref } from '@/lib/format'
-import { ORDER_STATUSES, type OrderStatus } from '@/lib/types'
+import { ORDER_STATUSES, type Order, type OrderStatus } from '@/lib/types'
 import { ORDER_STATUS_LABELS } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import {
@@ -98,6 +98,7 @@ export function OrderDetailPage({
           <span className="text-sm text-muted-foreground">
             Passée le {formatDateTime(order.createdAt)}
           </span>
+          <WhatsAppNotifyBadge order={order} />
         </div>
       </div>
 
@@ -163,7 +164,7 @@ export function OrderDetailPage({
           <AdminCard className="p-6">
             <h2 className="font-display text-lg font-semibold text-forest">Client</h2>
             <p className="mt-3 font-medium">{order.customerName}</p>
-            <a
+            
               href={telHref(order.phone)}
               className="mt-0.5 block text-sm text-muted-foreground transition-colors hover:text-forest hover:underline"
             >
@@ -249,5 +250,30 @@ export function OrderDetailPage({
         </div>
       </div>
     </div>
+  )
+}
+
+/** Indique si la notification WhatsApp automatique vers l'admin a bien été envoyée. */
+function WhatsAppNotifyBadge({ order }: { order: Order }) {
+  if (order.whatsappNotifiedAt) {
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366]/10 px-2.5 py-1 text-xs font-medium text-[#1d7a3f]"
+        title={`Envoyée le ${formatDateTime(order.whatsappNotifiedAt)}`}
+      >
+        <MessageCircle className="size-3.5" aria-hidden="true" />
+        WhatsApp envoyé
+      </span>
+    )
+  }
+
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive"
+      title={order.whatsappError ?? 'Notification WhatsApp non envoyée'}
+    >
+      <TriangleAlert className="size-3.5" aria-hidden="true" />
+      WhatsApp non envoyé
+    </span>
   )
 }

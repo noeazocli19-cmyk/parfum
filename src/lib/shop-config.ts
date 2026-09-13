@@ -47,6 +47,45 @@ export function buildWhatsAppOrderMessage(input: {
   return body
 }
 
+/** Message envoyé automatiquement à l'admin dès qu'une commande est validée. */
+export function buildAdminOrderNotification(input: {
+  reference: string
+  items: Array<{ name: string; quantity: number; unitPrice: number | null }>
+  customerName: string
+  phone: string
+  address: string
+  comment?: string | null
+  total: number
+  hasUndeterminedPrice: boolean
+}) {
+  const body = [
+    '🔔 Nouvelle commande — E.T.P.S Belle Odeur',
+    '',
+    `📦 Référence : ${input.reference}`,
+    '',
+    '🛍️ Articles',
+    ...input.items.map(
+      (item) =>
+        `• ${item.name} × ${item.quantity} — ${formatMoneyForWhatsApp(item.unitPrice ?? 0)}`
+    ),
+    '',
+    input.hasUndeterminedPrice
+      ? `💰 Total : ${formatMoneyForWhatsApp(input.total)} (prix sur demande à confirmer)`
+      : `💰 Total : ${formatMoneyForWhatsApp(input.total)}`,
+    '',
+    `👤 Client : ${input.customerName}`,
+    `📱 Téléphone : ${input.phone}`,
+    `📍 Adresse : ${input.address}`,
+    input.comment ? `💬 Commentaire : ${input.comment}` : '',
+    '',
+    'Cette commande est déjà visible dans le dashboard admin.',
+  ]
+    .filter(Boolean)
+    .join('\n')
+
+  return body
+}
+
 export function getWhatsAppUrl(message: string) {
   const cleaned = (WHATSAPP_NUMBER || '').replace(/[^0-9]/g, '')
   if (!cleaned) return null
