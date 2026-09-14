@@ -164,7 +164,7 @@ export function OrderDetailPage({
           <AdminCard className="p-6">
             <h2 className="font-display text-lg font-semibold text-forest">Client</h2>
             <p className="mt-3 font-medium">{order.customerName}</p>
-            
+            <a
               href={telHref(order.phone)}
               className="mt-0.5 block text-sm text-muted-foreground transition-colors hover:text-forest hover:underline"
             >
