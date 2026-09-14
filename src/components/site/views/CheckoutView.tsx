@@ -10,7 +10,7 @@ import { Loader2, MessageCircle, PhoneCall, ShoppingBag } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api-client'
 import { formatPrice, telHref } from '@/lib/format'
-import { PAYMENT_INFO, buildWhatsAppOrderMessage, getWhatsAppUrl } from '@/lib/shop-config'
+import { PAYMENT_INFO } from '@/lib/shop-config'
 import { cartHasUndeterminedPrice, cartSubtotal, useCart } from '@/store/cart'
 import { useSettings } from '../use-settings'
 import { Button } from '@/components/ui/button'
@@ -49,10 +49,27 @@ export function CheckoutView({
   const subtotal = cartSubtotal(items)
 
   const mutation = useMutation({
-    mutationFn: (input: Parameters<typeof api.createOrder>[0]) => api.createOrder(input),
-    onSuccess: (data) => {
+    mutationFn: (input: any) => api.createOrder(input),
+    onSuccess: (data: any) => {
       clear()
-      navigate(`#/confirmation/${encodeURIComponent(data.reference)}`)
+
+      let detailParfums = ""
+      items.forEach((item) => {
+        detailParfums += `* Parfum : ${item.name}\n* Quantité : ${item.quantity}\n* Prix : ${item.price !== null ? formatPrice(item.price) : 'Prix sur demande'}\n\n`
+      })
+
+      const texteWhatsApp = `Bonjour, je souhaite commander :\n\n${detailParfums}* Nom du client : ${form.customerName.trim()}\n* Numéro du client : ${form.phone.trim()}\n* Référence de commande : ${data.reference}\n* Autres informations : ${form.comment.trim() || "Aucune"}`
+
+      const telAdminBrut = settings?.phone || "0166491298"
+      let telAdminNettoye = telAdminBrut.replace(/\s+/g, "").replace("+", "")
+      if (telAdminNettoye.startsWith("01") || telAdminNettoye.startsWith("66") || telAdminNettoye.startsWith("49")) {
+        if (!telAdminNettoye.startsWith("229")) {
+          telAdminNettoye = "229" + telAdminNettoye
+        }
+      }
+
+      const urlFinale = `https://wa.me{telAdminNettoye}?text=${encodeURIComponent(texteWhatsApp)}`
+      window.location.href = urlFinale
     },
     onError: (error) => {
       toast.error(
@@ -62,21 +79,6 @@ export function CheckoutView({
       )
     },
   })
-
-  const whatsappUrl = getWhatsAppUrl(
-    buildWhatsAppOrderMessage({
-      items: items.map((item) => ({
-        name: item.name,
-        quantity: item.quantity,
-        unitPrice: item.price,
-      })),
-      customerName: form.customerName.trim(),
-      phone: form.phone.trim(),
-      address: form.address.trim(),
-      comment: form.comment.trim(),
-      total: subtotal,
-    })
-  )
 
   if (!mounted) {
     return (
@@ -139,8 +141,7 @@ export function CheckoutView({
         Votre commande
       </h1>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-        Renseignez vos coordonnées : notre équipe vous contacte par téléphone pour confirmer
-        votre commande et les modalités de livraison.
+        Renseignez vos coordonnées : la commande sera enregistrée et vous serez redirigé vers WhatsApp pour finaliser l'envoi.
       </p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
@@ -222,101 +223,36 @@ export function CheckoutView({
                   Envoi en cours…
                 </>
               ) : (
-                'Valider ma commande'
+                <>
+                  <MessageCircle className="mr-2 size-4" />
+                  Commander maintenant
+                </>
               )}
             </Button>
-
-            {whatsappUrl ? (
-              <Button asChild variant="outline" className="h-11 border-[#25D366] bg-[#25D366]/5 text-[#1d7a3f] hover:bg-[#25D366]/10">
-                <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                  <MessageCircle className="size-4" aria-hidden="true" />
-                  Passer via WhatsApp
-                </a>
-              </Button>
-            ) : null}
           </div>
-
-          <p className="mt-4 rounded-lg border border-gold/30 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-gold-deep">
-            {PAYMENT_INFO}
-          </p>
         </form>
 
-        <aside
-          aria-label="Récapitulatif de la commande"
-          className="h-fit rounded-xl border border-border bg-white p-6 lg:sticky lg:top-24"
-        >
-          <h2 className="font-display text-2xl font-semibold text-forest">Récapitulatif</h2>
-          <ul className="mt-3 divide-y divide-border/70">
+        <div className="rounded-xl border border-border bg-muted/30 p-6 self-start">
+          <h2 className="font-display text-xl font-semibold text-forest">Récapitulatif</h2>
+          <div className="mt-4 divide-y divide-border">
             {items.map((item) => (
-              <li key={item.productId} className="flex items-center gap-3 py-3">
-                <span className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-cream">
-                  {item.image ? (
-                    <Image
-                      src={item.image}
-                      alt={`Flacon du parfum ${item.name}`}
-                      fill
-                      sizes="48px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <span className="flex h-full items-center justify-center font-display text-sm text-forest/25">
-                      BO
-                    </span>
-                  )}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-ink">{item.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    Quantité : {item.quantity}
-                  </span>
-                </span>
-                <PriceText
-                  price={item.price === null ? null : item.price * item.quantity}
-                  className="shrink-0 text-sm text-forest"
-                />
-              </li>
+              <div key={item.productId} className="flex justify-between py-3 text-sm">
+                <div>
+                  <p className="font-medium text-foreground">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">Qté: {item.quantity}</p>
+                </div>
+                <p className="font-medium text-foreground">
+                  {item.price !== null ? formatPrice(item.price * item.quantity) : 'Sur demande'}
+                </p>
+              </div>
             ))}
-          </ul>
-          <a
-            href="#/panier"
-            className="mt-2 inline-block text-sm text-muted-foreground underline underline-offset-4 transition-colors hover:text-forest"
-          >
-            Modifier le panier
-          </a>
-
+          </div>
           <Separator className="my-4" />
-          <div className="flex items-center justify-between gap-3">
-            <span className="font-medium text-ink">Total</span>
-            {undetermined ? (
-              <span className="text-right text-sm italic text-gold-deep">
-                Montant à confirmer par téléphone
-              </span>
-            ) : (
-              <span className="font-display text-2xl font-semibold text-forest">
-                {formatPrice(subtotal)}
-              </span>
-            )}
+          <div className="flex justify-between font-medium">
+            <span>Total</span>
+            <PriceText price={undetermined ? null : subtotal} className="text-lg font-bold text-forest-deep" />
           </div>
-          {undetermined ? (
-            <p className="mt-3 text-xs leading-relaxed text-gold-deep">
-              Certains produits sont à « prix sur demande » : le montant définitif sera confirmé
-              par téléphone.
-            </p>
-          ) : null}
-
-          <div className="mt-5 flex items-center gap-3 rounded-lg bg-cream p-4">
-            <PhoneCall className="size-5 shrink-0 text-gold-deep" aria-hidden="true" />
-            <p className="text-sm text-ink/80">
-              Besoin d’aide ?{' '}
-              <a
-                href={telHref(settings.contactPhone)}
-                className="font-medium text-forest underline decoration-gold/50 underline-offset-4"
-              >
-                {settings.contactPhone}
-              </a>
-            </p>
-          </div>
-        </aside>
+        </div>
       </div>
     </section>
   )
