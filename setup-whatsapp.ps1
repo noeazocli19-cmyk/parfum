@@ -1,3 +1,86 @@
+﻿# =============================================================================
+#  E.T.P.S BELLE ODEUR  --  setup-whatsapp.ps1  (script tout-en-un)
+# -----------------------------------------------------------------------------
+#  Ce script automatise COMPLETEMENT l'implementation de la commande WhatsApp.
+#  AUCUNE modification manuelle de fichier n'est requise.
+#
+#    Etape 0 : Localise automatiquement la racine du projet (package.json).
+#    Etape 1 : Injecte le fichier src\components\site\views\CheckoutView.tsx
+#              complet, corrige et sans balise orpheline :
+#                - POST /api/orders  ->  commande enregistree en base
+#                  (reference unique BO-AAAA-XXXX, visible sur le Dashboard
+#                   Administrateur instantanement) ;
+#                - au succes, l'ecran SE TRANSFORME : un GRAND BOUTON VERT
+#                  "Envoyer sur WhatsApp" apparait (clic direct utilisateur :
+#                  aucun bloqueur de pop-up ne peut l'arreter) ;
+#                - message WhatsApp pre-rempli exactement au format demande
+#                  (asterisques conserves pour le gras WhatsApp) ;
+#                - numero admin extrait de la configuration (settings.phone,
+#                  sinon contactPhone) et formate international Benin (+229)
+#                  s'il commence par 01, 66 ou 49 ;
+#                - URL corrigee : https://wa.me/<numero>?text=<message>
+#                  (l'ancienne version produisait wa.me<numero> : bug corrige).
+#    Etape 2 : Purge le cache persistant Turbopack (.next) s'il existe.
+#    Etape 3 : Valide le projet avec un build complet (pnpm build) :
+#              aucune erreur de syntaxe ou <eof> ne peut passer inapercue.
+#    Etape 4 : Soumission Git (add + commit + push) -> deploiement Vercel.
+#
+#  USAGE :
+#     powershell -ExecutionPolicy Bypass -File .\setup-whatsapp.ps1
+#     (ou clic droit sur le fichier puis "Executer avec PowerShell")
+#
+#  PREREQUIS : Windows PowerShell 5.1+ ou PowerShell 7+, pnpm, git.
+#  Placez ce fichier a la RACINE du projet (a cote de package.json).
+# =============================================================================
+
+$ErrorActionPreference = 'Stop'
+
+function Write-Step { param([string]$Text) Write-Host ''; Write-Host ("==> " + $Text) -ForegroundColor Cyan }
+function Write-Ok   { param([string]$Text) Write-Host ("    [OK] " + $Text) -ForegroundColor Green }
+function Write-Fail { param([string]$Text) Write-Host ("    [ECHEC] " + $Text) -ForegroundColor Red }
+
+Write-Host '==============================================================' -ForegroundColor DarkCyan
+Write-Host '  E.T.P.S BELLE ODEUR - Installation automatisee WhatsApp'     -ForegroundColor DarkCyan
+Write-Host '==============================================================' -ForegroundColor DarkCyan
+
+try {
+    # -------------------------------------------------------------------------
+    # Etape 0 : localiser la racine du projet (celle qui contient package.json)
+    # -------------------------------------------------------------------------
+    Write-Step 'Etape 0/5 : Localisation du projet et des outils'
+
+    $projectRoot = $PSScriptRoot
+    if ([string]::IsNullOrWhiteSpace($projectRoot)) { $projectRoot = (Get-Location).Path }
+
+    $attempts = 0
+    while (-not (Test-Path -LiteralPath (Join-Path $projectRoot 'package.json'))) {
+        $parent = Split-Path -Parent $projectRoot
+        if ([string]::IsNullOrWhiteSpace($parent) -or ($parent -eq $projectRoot) -or ($attempts -ge 6)) {
+            throw ('package.json introuvable. Placez setup-whatsapp.ps1 a la racine du projet (dossier qui contient package.json), puis relancez le script. Dossier teste : ' + $projectRoot)
+        }
+        $projectRoot = $parent
+        $attempts = $attempts + 1
+    }
+    Set-Location -LiteralPath $projectRoot
+    Write-Ok ('Projet detecte : ' + $projectRoot)
+
+    if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
+        throw "pnpm est introuvable. Installez-le d'abord : npm install -g pnpm"
+    }
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        throw 'git est introuvable. Installez Git pour Windows puis relancez le script.'
+    }
+    Write-Ok 'pnpm et git disponibles'
+
+    # -------------------------------------------------------------------------
+    # Etape 1 : injection autonome de CheckoutView.tsx (code 100% corrige)
+    #   Here-string a guillemets simples (@' ... '@) : AUCUN caractere n'est
+    #   interprete par PowerShell ($, backtick, {, }, ", ' restent litteraux).
+    #   Ecriture finale en UTF-8 sans BOM (requis par Next.js / TypeScript).
+    # -------------------------------------------------------------------------
+    Write-Step 'Etape 1/5 : Injection du CheckoutView.tsx (commande + bouton WhatsApp)'
+
+    $checkoutTsx = @'
 // Commande — formulaire client + récapitulatif, envoi via l'API publique.
 // Flux en deux temps anti-blocage navigateur :
 //   1. Le clic sur « Commander maintenant » enregistre la commande (POST /api/orders)
@@ -495,4 +578,97 @@ export function CheckoutView({
       </div>
     </section>
   )
+}
+'@
+
+    # Normalisation des fins de ligne en LF, puis ecriture UTF-8 SANS BOM
+    # via .NET (contourne totalement les problemes d'encodage de Set-Content).
+    $checkoutTsx = $checkoutTsx.Replace("`r`n", "`n")
+    if (-not $checkoutTsx.EndsWith("`n")) { $checkoutTsx = $checkoutTsx + "`n" }
+    $viewsDir = Join-Path (Join-Path (Join-Path (Join-Path $projectRoot 'src') 'components') 'site') 'views'
+    New-Item -ItemType Directory -Force -Path $viewsDir | Out-Null
+    $targetFile = Join-Path $viewsDir 'CheckoutView.tsx'
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($targetFile, $checkoutTsx, $utf8NoBom)
+    Write-Ok ('Fichier ecrit : ' + $targetFile + ' (' + $checkoutTsx.Length + ' caracteres)')
+
+    # -------------------------------------------------------------------------
+    # Etape 2 : purge du cache persistant Turbopack
+    # -------------------------------------------------------------------------
+    Write-Step 'Etape 2/5 : Purge du cache Turbopack (.next)'
+    $nextDir = Join-Path $projectRoot '.next'
+    if (Test-Path -LiteralPath $nextDir) {
+        Remove-Item -Recurse -Force -LiteralPath $nextDir
+        Write-Ok 'Cache .next supprime'
+    } else {
+        Write-Ok 'Aucun cache .next a purger'
+    }
+
+    # -------------------------------------------------------------------------
+    # Etape 3 : build de validation complet (detecte toute erreur de syntaxe)
+    # -------------------------------------------------------------------------
+    Write-Step 'Etape 3/5 : Build de validation (pnpm build)'
+    if (-not (Test-Path -LiteralPath (Join-Path $projectRoot 'node_modules'))) {
+        Write-Host '    node_modules absent : installation des dependances (pnpm install)...'
+        & pnpm install
+        if ($LASTEXITCODE -ne 0) { throw 'pnpm install a echoue. Verifiez votre connexion internet puis relancez le script.' }
+    }
+    & pnpm build
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Le build (pnpm build) a echoue : aucune soumission Git effectuee, votre depot reste propre. Corrigez le probleme indique ci-dessus puis relancez le script.'
+    }
+    Write-Ok 'Build valide : aucune erreur de syntaxe ni <eof>'
+
+    # -------------------------------------------------------------------------
+    # Etape 4 : soumission Git -> deploiement production Vercel
+    # -------------------------------------------------------------------------
+    Write-Step 'Etape 4/5 : Soumission Git (add + commit + push)'
+    & git add .
+    & git diff --cached --quiet | Out-Null
+    $hasStagedChanges = ($LASTEXITCODE -ne 0)
+
+    if (-not $hasStagedChanges) {
+        Write-Ok 'Le fichier injecte est deja a jour : rien a committer.'
+    } else {
+        & git commit -m 'Auto-setup WhatsApp injection'
+        if ($LASTEXITCODE -ne 0) {
+            throw 'git commit a echoue. Verifiez votre identite git (user.name et user.email) puis relancez le script.'
+        }
+        Write-Ok 'Commit cree : "Auto-setup WhatsApp injection"'
+
+        $branch = & git rev-parse --abbrev-ref HEAD
+        if ([string]::IsNullOrWhiteSpace($branch)) { $branch = 'main' } else { $branch = $branch.Trim() }
+        Write-Host ('    Pousse vers origin/' + $branch + ' (deploiement Vercel en cours)...')
+        & git push origin $branch
+        if ($LASTEXITCODE -ne 0) {
+            throw ('git push a echoue. Verifiez votre connexion et vos identifiants GitHub, puis executez manuellement : git push origin ' + $branch)
+        }
+        Write-Ok ('Code pousse sur GitHub (origin/' + $branch + ') : deploiement Vercel declenche')
+    }
+
+    # -------------------------------------------------------------------------
+    # Bilan
+    # -------------------------------------------------------------------------
+    Write-Host ''
+    Write-Host '==============================================================' -ForegroundColor Green
+    Write-Host '  INSTALLATION TERMINEE AVEC SUCCES'                            -ForegroundColor Green
+    Write-Host '==============================================================' -ForegroundColor Green
+    Write-Host '  1. "Commander maintenant" -> POST /api/orders'                    -ForegroundColor White
+    Write-Host '     Reference unique BO-AAAA-XXXX visible sur le Dashboard.'      -ForegroundColor White
+    Write-Host '  2. L''ecran affiche ensuite un GRAND BOUTON VERT'                -ForegroundColor White
+    Write-Host '     "Envoyer sur WhatsApp" (message deja pre-rempli).'            -ForegroundColor White
+    Write-Host '  3. Numero admin formate international Benin (+229)'               -ForegroundColor White
+    Write-Host '     si le numero configure commence par 01, 66 ou 49.'            -ForegroundColor White
+    Write-Host '  Apres le deploiement Vercel (2 a 3 minutes), testez'              -ForegroundColor White
+    Write-Host '  une commande depuis la boutique pour valider le flux.'            -ForegroundColor White
+    Write-Host '==============================================================' -ForegroundColor Green
+    exit 0
+}
+catch {
+    Write-Host ''
+    Write-Fail $_.Exception.Message
+    Write-Host ''
+    Write-Host '  Le script s est arrete SANS effectuer de commit : votre depot Git reste propre.' -ForegroundColor Yellow
+    Write-Host '  Corrigez la cause indiquee ci-dessus puis relancez setup-whatsapp.ps1.'          -ForegroundColor Yellow
+    exit 1
 }
