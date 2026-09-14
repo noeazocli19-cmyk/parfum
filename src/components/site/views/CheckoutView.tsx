@@ -51,24 +51,37 @@ export function CheckoutView({
   const mutation = useMutation({
     mutationFn: (input: any) => api.createOrder(input),
     onSuccess: (data: any) => {
+      // 1. Vider le panier
       clear()
 
+      // 2. Construire la liste brute des produits commandés
       let detailParfums = ""
       items.forEach((item) => {
-        detailParfums += `* Parfum : ${item.name}\n* Quantité : ${item.quantity}\n* Prix : ${item.price !== null ? formatPrice(item.price) : 'Prix sur demande'}\n\n`
+        detailParfums += "* Parfum : " + item.name + "\n* Quantité : " + item.quantity + "\n* Prix : " + (item.price !== null ? formatPrice(item.price) : 'Prix sur demande') + "\n\n"
       })
 
-      const texteWhatsApp = `Bonjour, je souhaite commander :\n\n${detailParfums}* Nom du client : ${form.customerName.trim()}\n* Numéro du client : ${form.phone.trim()}\n* Référence de commande : ${data.reference}\n* Autres informations : ${form.comment.trim() || "Aucune"}`
+      // 3. Générer le template de message en gras sans aucune fonction externe
+      const texteWhatsApp = "Bonjour, je souhaite commander :\n\n" + 
+        detailParfums + 
+        "* Nom du client : " + form.customerName.trim() + "\n" + 
+        "* Numéro du client : " + form.phone.trim() + "\n" + 
+        "* Référence de commande : " + data.reference + "\n" + 
+        "* Autres informations : " + (form.comment.trim() || "Aucune")
 
+      // 4. Nettoyer proprement le numéro de l'administrateur
       const telAdminBrut = settings?.phone || "0166491298"
       let telAdminNettoye = telAdminBrut.replace(/\s+/g, "").replace("+", "")
+      
       if (telAdminNettoye.startsWith("01") || telAdminNettoye.startsWith("66") || telAdminNettoye.startsWith("49")) {
         if (!telAdminNettoye.startsWith("229")) {
           telAdminNettoye = "229" + telAdminNettoye
         }
       }
 
-      const urlFinale = `https://wa.me{telAdminNettoye}?text=${encodeURIComponent(texteWhatsApp)}`
+      // 5. Concaténation pure (évite à 100% le bug d'écriture de variables de Turbopack)
+      const urlFinale = "https://wa.me" + telAdminNettoye + "?text=" + encodeURIComponent(texteWhatsApp)
+      
+      // 6. Redirection immédiate
       window.location.href = urlFinale
     },
     onError: (error) => {
@@ -241,8 +254,7 @@ export function CheckoutView({
                   <p className="font-medium text-foreground">{item.name}</p>
                   <p className="text-xs text-muted-foreground">Qté: {item.quantity}</p>
                 </div>
-                <p className="font-medium text-foreground">
-                  {item.price !== null ? formatPrice(item.price * item.quantity) : 'Sur demande'}
+                <p className="font-medium text-foreground">                   {item.price !== null ? formatPrice(item.price * item.quantity) : 'Sur demande'}
                 </p>
               </div>
             ))}
@@ -257,3 +269,4 @@ export function CheckoutView({
     </section>
   )
 }
+

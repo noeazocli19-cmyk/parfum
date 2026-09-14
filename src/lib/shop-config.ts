@@ -1,4 +1,3 @@
-export const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? ''
 export const PAYMENT_INFO =
   process.env.NEXT_PUBLIC_MOBILE_MONEY_INFO ??
   'Les modalités de paiement Mobile Money seront confirmées par la boutique après validation de votre commande.'
@@ -11,38 +10,24 @@ export function formatMoneyForWhatsApp(value: number | null | undefined): string
   }).format(n)} FCFA`
 }
 
+// Génère le message exact demandé
 export function buildWhatsAppOrderMessage(input: {
   items: Array<{ name: string; quantity: number; unitPrice: number | null }>
   customerName: string
   phone: string
-  address: string
   comment?: string
-  total: number
+  reference: string
 }) {
-  const body = [
-    'Bonjour E.T.P.S Belle Odeur 👋',
-    '',
-    'Je souhaite passer cette commande :',
-    '',
-    '🛍️ Ma commande',
-    ...input.items.map(
-      (item) =>
-        `• ${item.name} × ${item.quantity} — ${formatMoneyForWhatsApp(item.unitPrice ?? 0)}`
-    ),
-    '',
-    `💰 Total : ${formatMoneyForWhatsApp(input.total)}`,
-    '',
-    `👤 Nom : ${input.customerName}`,
-    `📱 Téléphone : ${input.phone}`,
-    `📍 Adresse de livraison : ${input.address}`,
-    input.comment ? `💬 Commentaire : ${input.comment}` : '',
-    '',
-    'Je souhaite effectuer le paiement par Mobile Money.',
-    '',
-    'Merci.',
-  ]
-    .filter(Boolean)
-    .join('\n')
+  let detailParfums = ""
+  input.items.forEach((item) => {
+    detailParfums += `* Parfum : ${item.name}\n* Quantité : ${item.quantity}\n* Prix : ${item.unitPrice !== null ? formatMoneyForWhatsApp(item.unitPrice) : 'Prix sur demande'}\n\n`
+  })
+
+  const body = `Bonjour, je souhaite commander :
+${detailParfums}* Nom du client : ${input.customerName}
+* Numéro du client : ${input.phone}
+* Référence de commande : ${input.reference}
+* Autres informations : ${input.comment || "Aucune"}`
 
   return body
 }
@@ -86,8 +71,14 @@ export function buildAdminOrderNotification(input: {
   return body
 }
 
-export function getWhatsAppUrl(message: string) {
-  const cleaned = (WHATSAPP_NUMBER || '').replace(/[^0-9]/g, '')
-  if (!cleaned) return null
-  return `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`
+// Version sécurisée qui prend le numéro propre et le nettoie
+export function getWhatsAppUrl(numAdmin: string, message: string) {
+  const cleaned = (numAdmin || '0166491298').replace(/[^0-9]/g, '')
+  let finalPhone = cleaned
+  if (finalPhone.startsWith("01") || finalPhone.startsWith("66") || finalPhone.startsWith("49")) {
+    if (!finalPhone.startsWith("229")) {
+      finalPhone = "229" + finalPhone
+    }
+  }
+  return `https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`
 }
