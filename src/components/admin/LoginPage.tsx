@@ -63,7 +63,7 @@ export function LoginPage({ navigate }: { navigate: NavigateFn }) {
       >
         <div className="rounded-xl border bg-white p-8 shadow-sm">
           <Image
-            src="/images/logo-embleme.png"
+            src="/images/logo.jpg"
             alt="Emblème E.T.P.S Belle Odeur"
             width={56}
             height={56}

@@ -137,7 +137,7 @@ export function HomeView() {
               />
               <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-cream">
                 <Image
-                  src="/images/hero.jpg"
+                  src="/images/hero.png"
                   alt="Flacon de parfum raffiné de la maison E.T.P.S Belle Odeur"
                   fill
                   priority

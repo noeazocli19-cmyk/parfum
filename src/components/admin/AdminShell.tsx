@@ -111,7 +111,7 @@ export function AdminShell({
     <div className="flex h-full flex-col bg-forest-deep text-white">
       <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
         <Image
-          src="/images/logo-embleme-fonce.png"
+          src="/images/logo.jpg"
           alt="Emblème E.T.P.S Belle Odeur"
           width={44}
           height={44}

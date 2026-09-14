@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     siteName: "E.T.P.S Belle Odeur",
-    images: [{ url: "/images/hero.jpg", width: 864, height: 1152, alt: "Flacon de parfum E.T.P.S Belle Odeur" }],
+    images: [{ url: "/images/hero.png", width: 864, height: 1152, alt: "Flacon de parfum E.T.P.S Belle Odeur" }],
   },
   twitter: {
     card: "summary_large_image",

@@ -34,7 +34,7 @@ export function Footer() {
         <div className="flex flex-col gap-4">
           <a href="#/" className="flex items-center gap-3" aria-label="E.T.P.S Belle Odeur — retour à l’accueil">
             <Image
-              src="/images/logo-embleme-fonce.png"
+              src="/images/logo.jpg"
               alt="Emblème de la maison E.T.P.S Belle Odeur"
               width={48}
               height={48}

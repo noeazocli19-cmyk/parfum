@@ -109,7 +109,7 @@ export function Navbar({
           aria-label="E.T.P.S Belle Odeur — retour à l’accueil"
         >
           <Image
-            src="/images/logo-embleme.png"
+            src="/images/logo.jpg"
             alt="Emblème de la maison E.T.P.S Belle Odeur"
             width={44}
             height={44}
@@ -208,7 +208,7 @@ export function Navbar({
             <div className="flex h-16 items-center justify-between px-4 sm:px-6">
               <span className="flex items-center gap-3">
                 <Image
-                  src="/images/logo-embleme.png"
+                  src="/images/logo.jpg"
                   alt="Emblème de la maison E.T.P.S Belle Odeur"
                   width={44}
                   height={44}

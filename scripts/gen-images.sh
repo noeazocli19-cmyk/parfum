@@ -14,7 +14,7 @@ gen() {
   echo "FAIL $out"
 }
 
-gen "Luxury perfume editorial photography, elegant tall glass perfume bottle with gold cap standing on dark emerald green silk fabric, soft golden light rays, deep forest green background, subtle cream orchid flowers, high-end fragrance advertisement, minimalist premium composition, no text, no letters" "public/images/hero.jpg" "864x1152"
+gen "Luxury perfume editorial photography, elegant tall glass perfume bottle with gold cap standing on dark emerald green silk fabric, soft golden light rays, deep forest green background, subtle cream orchid flowers, high-end fragrance advertisement, minimalist premium composition, no text, no letters" "public/images/hero.png" "864x1152"
 
 gen "Masculine luxury perfume bottle, dark smoked glass flacon with matte black and brushed gold cap, standing on dark stone, deep green leaves shadows on forest green background, moody premium product photography, cinematic lighting, no text, no letters" "public/images/categorie-homme.jpg" "864x1152"
 
@@ -38,9 +38,9 @@ gen "Clear glass luxury perfume bottle with pale orange liquid and gold cap, ora
 
 gen "Interior of an elegant luxury perfume boutique, dark green walls with gold accents, wooden shelves displaying rows of perfume bottles, warm golden lighting, marble counter, sophisticated atmosphere, editorial interior photography, no text, no letters" "public/images/a-propos.jpg" "1344x768"
 
-gen "Minimalist luxury logo emblem for a perfume house, thin gold line art of an elegant perfume flacon bottle with a laurel branch, centered on plain white background, flat vector style, refined golden lines only, no text, no letters" "public/images/logo-embleme.png" "1024x1024"
+gen "Minimalist luxury logo emblem for a perfume house, thin gold line art of an elegant perfume flacon bottle with a laurel branch, centered on plain white background, flat vector style, refined golden lines only, no text, no letters" "public/images/logo.jpg" "1024x1024"
 
-gen "Minimalist luxury logo emblem for a perfume house, thin golden line art of an elegant perfume flacon bottle with laurel branch, centered on solid deep emerald green background, flat vector style, refined gold lines, no text, no letters" "public/images/logo-embleme-fonce.png" "1024x1024"
+gen "Minimalist luxury logo emblem for a perfume house, thin golden line art of an elegant perfume flacon bottle with laurel branch, centered on solid deep emerald green background, flat vector style, refined gold lines, no text, no letters" "public/images/logo.jpg" "1024x1024"
 
 echo "=== TERMINÉ ==="
 ls -la public/images public/images/produits

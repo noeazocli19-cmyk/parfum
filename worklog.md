@@ -55,7 +55,7 @@ Work Log:
 Stage Summary:
 - Fichiers créés/modifiés (tous dans src/components/site/**) : SiteApp.tsx (modifié), use-settings.ts, Navbar.tsx, Footer.tsx, SearchOverlay.tsx, CartDrawer.tsx, views/{HomeView,ShopView,ProductView,CartView,CheckoutView,ConfirmationView,AboutView,ContactView,NotFoundView}.tsx.
 - Aucune modification hors périmètre ; exports partagés intact ; hydratation sûre (panier/badge après montage, aucune lecture window au premier rendu) ; aucun emoji ; textes FR exacts du cahier des charges ; téléphone exclusivement via settings.contactPhone ; rien d'inventé (adresse/réseaux conditionnels).
-- Point d'attention 1 : à l'instant T, public/images/ ne contient pas encore hero.jpg, categorie-*.jpg, a-propos.jpg, logo-embleme*.png ni produits/*.jpg (seul un dossier produits vide existe) alors que le brief les annonce disponibles — les <Image> référencent ces chemins conformément au contrat ; l'orchestrateur devra s'assurer de leur génération (scripts/gen-images.sh Task 1) sinon les visuels seront manquants (la mise en page reste stable grâce aux fill + fonds crème).
+- Point d'attention 1 : à l'instant T, public/images/ ne contient pas encore hero.png, categorie-*.jpg, a-propos.jpg, logo-embleme*.png ni produits/*.jpg (seul un dossier produits vide existe) alors que le brief les annonce disponibles — les <Image> référencent ces chemins conformément au contrat ; l'orchestrateur devra s'assurer de leur génération (scripts/gen-images.sh Task 1) sinon les visuels seront manquants (la mise en page reste stable grâce aux fill + fonds crème).
 - Point d'attention 2 : le 500 global actuel vient de src/components/admin/** (Task 6-b, modules/imports en cours de correction par l'agent parallèle) — le site public compile de son côté sans erreur (tsc + dev.log).
 
 ---
@@ -138,7 +138,7 @@ Work Log:
 
 Stage Summary:
 - Héros animé : flottement continu discret + reflet lumineux périodique, en CSS pur (performant, robuste, accessible).
-- Prêt pour les vraies images : l'animation porte sur les conteneurs — remplacer public/images/hero.jpg suffira, aucun code à toucher.
+- Prêt pour les vraies images : l'animation porte sur les conteneurs — remplacer public/images/hero.png suffira, aucun code à toucher.
 
 ---
 Task ID: 11

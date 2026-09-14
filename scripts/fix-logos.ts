@@ -6,6 +6,6 @@ async function convert(input: string, output: string) {
   console.log('converti:', output)
 }
 
-await convert('public/images/logo-embleme.png', 'public/images/logo-embleme.real.png')
-await convert('public/images/logo-embleme-fonce.png', 'public/images/logo-embleme-fonce.real.png')
+await convert('public/images/logo.jpg', 'public/images/logo-embleme.real.png')
+await convert('public/images/logo.jpg', 'public/images/logo-embleme-fonce.real.png')
 console.log('OK')
