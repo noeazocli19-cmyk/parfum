@@ -30,11 +30,11 @@ export function Footer() {
 
   return (
     <footer className="mt-auto bg-forest-deep text-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.5fr_1fr_1.2fr] lg:px-8 lg:py-14">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.3fr_0.9fr_0.9fr_1fr] lg:px-8 lg:py-14">
         <div className="flex flex-col gap-4">
           <a href="#/" className="flex items-center gap-3" aria-label="E.T.P.S Belle Odeur — retour à l’accueil">
             <Image
-              src="/images/logo.jpg"
+              src="/images/logo-embleme-fonce.png"
               alt="Emblème de la maison E.T.P.S Belle Odeur"
               width={48}
               height={48}
@@ -63,11 +63,26 @@ export function Footer() {
               key={link.href}
               href={link.href}
               className="w-fit text-sm text-white/75 transition-colors hover:text-white"
-            >
+          >
               {link.label}
             </a>
           ))}
         </nav>
+
+        <div className="flex flex-col gap-2.5">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.28em] text-gold">
+            Informations légales
+          </h2>
+          {LEGAL_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="w-fit text-sm text-white/75 transition-colors hover:text-white"
+          >
+              {link.label}
+            </a>
+          ))}
+        </div>
 
         <div className="flex flex-col gap-2.5">
           <h2 className="text-[11px] font-medium uppercase tracking-[0.28em] text-gold">
@@ -83,21 +98,6 @@ export function Footer() {
           <p className="max-w-xs text-xs leading-relaxed text-white/55">
             Nos équipes vous conseillent et prennent votre commande par téléphone.
           </p>
-        </div>
-
-        <div className="flex flex-col gap-2.5">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.28em] text-gold">
-            Informations légales
-          </h2>
-          {LEGAL_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="w-fit text-sm text-white/75 transition-colors hover:text-white"
-            >
-              {link.label}
-            </a>
-          ))}
         </div>
       </div>
 
